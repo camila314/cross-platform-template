@@ -1,15 +1,15 @@
 #define CAC_PROJ_NAME "Template"
 
 #if __APPLE__
-#include <CacKit>
-using namespace cocos2d;
+	#include <CacKit>
+	using namespace cocos2d;
 #else
-#include <win32cac.h>
+	#include "win32cac.h"
 #endif
 
 class $implement(MenuLayer, MyMenuLayer) {
  public:
-	static bool (__thiscall* _init)(MenuLayer* self);
+	static inline bool (__thiscall* _init)(MenuLayer* self);
 
 	void buttonCallback(CCObject* sender) {
 		auto alert = FLAlertLayer::create(NULL, "Mod", "Ok", NULL, "<cg>custom button!</c>");
@@ -17,8 +17,7 @@ class $implement(MenuLayer, MyMenuLayer) {
 	}
 
 	bool inithook() {
-		if (!_init(this))
-			return false;
+		if (!_init(this)) return false;
 
 		auto sprite = CCSprite::create("dialogIcon_017.png");
 		auto buttonSprite = CCSprite::createWithSpriteFrameName("GJ_stopEditorBtn_001.png");
@@ -28,12 +27,10 @@ class $implement(MenuLayer, MyMenuLayer) {
 
 		addChild(sprite);
 
-
 		auto button = CCMenuItemSpriteExtra::create(
 		    buttonSprite,
 		    this,
-		    menu_selector(MyMenuLayer::buttonCallback)
-		);
+		    menu_selector(MyMenuLayer::buttonCallback));
 
 		auto menu = CCMenu::create();
 		menu->addChild(button);
@@ -48,22 +45,19 @@ class $implement(MenuLayer, MyMenuLayer) {
 	#endif
 };
 
-
 void inject() {
 	#if _WIN32
 	auto base = reinterpret_cast<uintptr_t>(GetModuleHandle(0));
 	
 	MH_CreateHook(
 	    reinterpret_cast<void*>(base + 0x1907b0),
-	    extract(&MyMenuLayer::inithook),
-	    reinterpret_cast<void**>(&MyMenuLayer::_init)
-	);
+		reinterpret_cast<void*>(extract(&MyMenuLayer::inithook)),
+	    reinterpret_cast<void**>(&MyMenuLayer::_init));
 
 	MH_EnableHook(MH_ALL_HOOKS);
 	#endif
 }
 
 #if _WIN32
-WIN32CAC_ENTRY(inject)
+	WIN32CAC_ENTRY(inject)
 #endif
-
